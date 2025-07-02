@@ -1,3 +1,5 @@
+import fetch from 'node-fetch';
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ success: false, error: 'Method Not Allowed' });
@@ -5,13 +7,11 @@ export default async function handler(req, res) {
 
   try {
     const { hwid } = req.body;
-    if (!hwid) {
-      return res.status(400).json({ success: false, error: 'HWID is missing' });
-    }
+    if (!hwid) return res.status(400).json({ success: false, error: 'HWID missing' });
 
     const timestamp = Date.now();
     const data = {
-      token: Math.random().toString(36).substr(2),
+      token: Math.random().toString(36).substring(2),
       created: timestamp,
       platform: "Roblox"
     };
@@ -30,7 +30,7 @@ export default async function handler(req, res) {
 
     return res.status(200).json({ success: true });
   } catch (err) {
-    console.error("Save HWID error:", err);
+    console.error(err);
     return res.status(500).json({ success: false, error: 'Internal Server Error' });
   }
 }
