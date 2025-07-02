@@ -1,32 +1,44 @@
-import fetch from "node-fetch";
-
-const FIREBASE = "https://xzuyaxhubkey-default-rtdb.asia-southeast1.firebasedatabase.app";
-
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ ok: false, error: "Method Not Allowed" });
-  }
-
-  const { hwid, token, created, platform = "Roblox" } = req.body || {};
-
-  if (!hwid) {
-    return res.status(400).json({ ok: false, error: "HWID missing" });
+  if (req.method !== 'POST') {
+    return res.status(405).json({ success: false, error: 'Method Not Allowed' });
   }
 
   try {
-    const url = `${FIREBASE}/tokens/${encodeURIComponent(hwid)}.json`;
-    const firebaseRes = await fetch(url, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ hwid, token, created, platform })
-    });
-
-    if (!firebaseRes.ok) {
-      throw new Error("Firebase error");
+    const { hwid } = req.body;
+    if (!hwid) {
+      return res.status(400).json({ success: false, error: 'HWID is missing' });
     }
 
-    res.json({ ok: true });
+    const timestamp = Date.now();
+    const data = {
+      token: Math.random().toString(36).substr(2),
+      created: timestamp,
+      platform: "Roblox"
+    };
+
+    const firebaseUrl = `https://xzuyaxhubkey-default-rtdb.asia-southeast1.firebasedatabase.app/keys/${hwid}.json`;
+
+    const firebaseResp = await fetch(firebaseUrl, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+
+    if (!firebaseResp.ok) {
+      return res.status(500).json({ success: false, error: 'Firebase write failed' });
+    }
+
+    return res.status(200).json({ success: true });
   } catch (err) {
-    res.status(500).json({ ok: false, error: err.message });
+    console.error("Save HWID error:", err);
+    return res.status(500).json({ success: false, error: 'Internal Server Error' });
   }
 }
+
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '1mb',
+    },
+  },
+};
