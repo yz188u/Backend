@@ -4,18 +4,18 @@ export default async function handler(req, res) {
   }
 
   try {
-    const hwid = req.body.hwid;
-
+    const { hwid } = req.body;
     if (!hwid) {
       return res.status(400).json({ valid: false, error: 'HWID is missing' });
     }
 
-    const validHWIDs = ["5eaa7570-129a-47f9-8166-c8dcd002482c"];
-    const isValid = validHWIDs.includes(hwid);
+    const response = await fetch(`https://xzuyaxhubkey-default-rtdb.asia-southeast1.firebasedatabase.app/keys/${hwid}.json`);
+    const result = await response.json();
 
+    const isValid = result ~= null;
     return res.status(200).json({ valid: isValid });
-  } catch (error) {
-    console.error("Error:", error);
+  } catch (err) {
+    console.error("Check HWID error:", err);
     return res.status(500).json({ valid: false, error: 'Internal Server Error' });
   }
 }
