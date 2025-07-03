@@ -26,7 +26,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ valid: false, error: "Missing HWID" });
     }
 
-    const firebaseUrl = `https://xzuyaxhubkey-default-rtdb.asia-southeast1.firebasedatabase.app/keys/${hwid}.json`;
+    const firebaseUrl = `https://xzuyaxhubkey-default-rtdb.asia-southeast1.firebasedatabase.app/valid_hwids/${hwid}.json`;
     const fbRes = await fetch(firebaseUrl);
     const fbData = await fbRes.text();
 
