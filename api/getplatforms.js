@@ -40,7 +40,7 @@ export default async function handler(req, res) {
       </head>
       <body>
         <h1>404 - Page Not Found</h1>
-        <p>The resource you're looking for does not exist.</p>
+        <p>The resource you're looking for does not exist,fuck yeah.</p>
       </body>
       </html>
     `);
