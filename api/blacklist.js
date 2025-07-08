@@ -1,3 +1,6 @@
+// blacklist.js (Vercel API)
+// Menyimpan HWID ke /blacklist di Firebase Realtime DB
+
 import fetch from "node-fetch";
 
 export default async function handler(req, res) {
@@ -6,33 +9,35 @@ export default async function handler(req, res) {
   }
 
   try {
-    const body = req.body;
+    const body = await req.json();
 
     const { hwid, user, userid, reason, timestamp } = body;
 
-    if (!hwid || !user || !userid || !reason || !timestamp) {
-      return res.status(400).json({ success: false, error: "Missing required fields" });
+    if (!hwid || !reason) {
+      return res.status(400).json({ success: false, error: "Missing required fields (hwid, reason)" });
     }
+
+    const blacklistUrl = `https://xzuyaxhubkey-default-rtdb.asia-southeast1.firebasedatabase.app/blacklist/${hwid}.json`;
 
     const data = {
       hwid,
-      user,
-      userid,
+      user: user || "unknown",
+      userid: userid || 0,
       reason,
-      timestamp
+      timestamp: timestamp || Date.now()
     };
 
-    const blacklistUrl = `https://xzuyaxhubkey-default-rtdb.asia-southeast1.firebasedatabase.app/blacklist.json`;
-
-    const firebaseRes = await fetch(blacklistUrl, {
-      method: "POST",
+    const response = await fetch(blacklistUrl, {
+      method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data)
     });
 
-    const result = await firebaseRes.json();
+    if (!response.ok) {
+      return res.status(500).json({ success: false, error: "Failed to save to Firebase" });
+    }
 
-    return res.status(200).json({ success: true, id: result.name });
+    return res.status(200).json({ success: true });
   } catch (err) {
     return res.status(500).json({ success: false, error: "Internal Server Error" });
   }
