@@ -1,29 +1,35 @@
-// blacklist.js (Vercel API)
+// blacklist.js (Full Compatible with curl, Roblox, Postman, etc)
 import fetch from "node-fetch";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
-    return res.status(405).json({ success: false, error: "Method Not Allowed Yeah" });
+    return res.status(405).json({ success: false, error: "Method Not Allowed" });
   }
 
   try {
-    const raw = await req.text(); // 👈 FIX: Pakai .text() dulu
-    let body;
+    // TERIMA SEMUA FORMAT BODY: JSON ataupun Text
+    const buffers = [];
+    for await (const chunk of req) {
+      buffers.push(chunk);
+    }
+    const rawBody = Buffer.concat(buffers).toString();
+    let body = {};
+
     try {
-      body = JSON.parse(raw); // 👈 FIX: Parse manual
-    } catch (err) {
-      return res.status(400).json({ success: false, error: "Invalid JSON Body" });
+      body = JSON.parse(rawBody);
+    } catch {
+      return res.status(400).json({ success: false, error: "Invalid JSON format." });
     }
 
     const { hwid, user, userid, reason, timestamp } = body;
 
     if (!hwid || !reason) {
-      return res.status(400).json({ success: false, error: "Missing required fields (hwid, reason)" });
+      return res.status(400).json({ success: false, error: "Missing hwid or reason" });
     }
 
-    const blacklistUrl = `https://xzuyaxhubkey-default-rtdb.asia-southeast1.firebasedatabase.app/blacklist/${hwid}.json`;
+    const firebaseURL = `https://xzuyaxhubkey-default-rtdb.asia-southeast1.firebasedatabase.app/blacklist/${hwid}.json`;
 
-    const data = {
+    const firebaseData = {
       hwid,
       user: user || "unknown",
       userid: userid || 0,
@@ -31,18 +37,18 @@ export default async function handler(req, res) {
       timestamp: timestamp || Date.now()
     };
 
-    const response = await fetch(blacklistUrl, {
+    const firebaseRes = await fetch(firebaseURL, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
+      body: JSON.stringify(firebaseData)
     });
 
-    if (!response.ok) {
+    if (!firebaseRes.ok) {
       return res.status(500).json({ success: false, error: "Failed to save to Firebase" });
     }
 
     return res.status(200).json({ success: true });
-  } catch (err) {
+  } catch (e) {
     return res.status(500).json({ success: false, error: "Internal Server Error" });
   }
 }
