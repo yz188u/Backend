@@ -1,6 +1,4 @@
-// blacklist.js (Vercel API)
-// Menyimpan HWID ke /blacklist di Firebase Realtime DB
-
+// blacklist.js (Vercel API) - FIXED VERSION
 import fetch from "node-fetch";
 
 export default async function handler(req, res) {
@@ -9,7 +7,9 @@ export default async function handler(req, res) {
   }
 
   try {
-    const body = await req.json();
+    // 🧠 FIXED: Parse JSON body secara manual
+    const raw = await req.text();
+    const body = JSON.parse(raw); // Hindari req.json()!
 
     const { hwid, user, userid, reason, timestamp } = body;
 
@@ -39,6 +39,7 @@ export default async function handler(req, res) {
 
     return res.status(200).json({ success: true });
   } catch (err) {
+    console.error("Blacklist error:", err);
     return res.status(500).json({ success: false, error: "Internal Server Error" });
   }
 }
