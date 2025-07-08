@@ -1,15 +1,19 @@
-// blacklist.js (Vercel API) - FIXED VERSION
+// blacklist.js (Vercel API)
 import fetch from "node-fetch";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
-    return res.status(405).json({ success: false, error: "Method Not Allowed" });
+    return res.status(405).json({ success: false, error: "Method Not Allowed Yeah" });
   }
 
   try {
-    // 🧠 FIXED: Parse JSON body secara manual
-    const raw = await req.text();
-    const body = JSON.parse(raw); // Hindari req.json()!
+    const raw = await req.text(); // 👈 FIX: Pakai .text() dulu
+    let body;
+    try {
+      body = JSON.parse(raw); // 👈 FIX: Parse manual
+    } catch (err) {
+      return res.status(400).json({ success: false, error: "Invalid JSON Body" });
+    }
 
     const { hwid, user, userid, reason, timestamp } = body;
 
@@ -39,7 +43,6 @@ export default async function handler(req, res) {
 
     return res.status(200).json({ success: true });
   } catch (err) {
-    console.error("Blacklist error:", err);
     return res.status(500).json({ success: false, error: "Internal Server Error" });
   }
 }
