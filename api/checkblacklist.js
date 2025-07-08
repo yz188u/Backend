@@ -6,24 +6,33 @@ export default async function handler(req, res) {
   }
 
   try {
-    const body = await req.text();
-    const params = new URLSearchParams(body);
+    const rawBody = await req.text();
+    const params = new URLSearchParams(rawBody);
     const hwid = params.get("hwid");
 
     if (!hwid) {
       return res.status(400).json({ success: false, error: "Missing hwid" });
     }
 
-    const url = `https://xzuyaxhubkey-default-rtdb.asia-southeast1.firebasedatabase.app/blacklist/${hwid}.json`;
-    const response = await fetch(url);
-    const data = await response.json();
+    const firebaseUrl = `https://xzuyaxhubkey-default-rtdb.asia-southeast1.firebasedatabase.app/blacklist/${hwid}.json`;
+    const firebaseRes = await fetch(firebaseUrl);
+
+    if (!firebaseRes.ok) {
+      return res.status(500).json({ success: false, error: "Failed to fetch from Firebase" });
+    }
+
+    const data = await firebaseRes.json();
 
     if (data && data.reason) {
-      return res.status(200).json({ blacklisted: true, reason: data.reason });
+      return res.status(200).json({
+        blacklisted: true,
+        reason: data.reason || "Unknown",
+      });
     } else {
       return res.status(200).json({ blacklisted: false });
     }
-  } catch (error) {
+  } catch (err) {
+    console.error("checkblacklist.js error:", err);
     return res.status(500).json({ success: false, error: "Internal Server Error" });
   }
 }
